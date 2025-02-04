@@ -1,0 +1,139 @@
+# Django specific #
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+*.sqlite3
+
+# Media files #
+/media/
+/uploads/
+
+# Static files #
+#/staticfiles/
+
+# Environment variables #
+.env
+.env.local
+*.env
+*.local
+
+# IDE specific #
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# MacOS specific #
+.DS_Store
+
+# Windows specific #
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python specific #
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+__pypackages__/
+
+# Virtual Environment #
+/venv/
+/env/
+/env.bak/
+/venv.bak/
+/.venv/
+/.virtualenv/
+/.venv_bak/
+/bin/
+/lib/
+/lib64/
+/local/
+/pyvenv.cfg
+
+# Celery
+celerybeat-schedule
+
+# Logs and Debugging #
+*.log
+debug.log
+*.log.*
+*.bak
+
+# Compiled files #
+*.dll
+*.so
+*.dylib
+
+# Database files #
+*.db
+*.sqlite3
+
+# Deployment #
+*.pid
+
+# Coverage reports #
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Test reports #
+*.log
+*.out
+*.err
+*.spec
+*.tmp
+*.test
+
+# Backup files #
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+
+# Jupyter Notebooks #
+.ipynb_checkpoints
+
+# Node.js #
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Django migrations #
+#*/migrations/*
+
+# Ignore PyCharm/IDEA files #
+.idea/
+
+# Ignore VSCode files #
+.vscode/
+
+# Backup logs #
+debug.log
