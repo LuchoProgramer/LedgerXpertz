@@ -1,0 +1,15 @@
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Editar Producto: {{ producto.nombre }}</h1>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </form>
+
+        <a href="{% url 'core:agregar_presentaciones_multiples' producto.id %}" class="btn btn-info mt-4">Agregar Presentaciones</a>
+
+        <a href="{% url 'core:lista_productos' %}" class="btn btn-secondary mt-4">Cancelar</a>
+    </div>
+{% endblock %}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Turno Específico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 15px;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+            font-size: 16px;
+            display: block;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        a:hover {
+            background-color: #e2e6ea;
+        }
+        .activo {
+            color: green;
+        }
+        .inactivo {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Seleccionar Turno Específico</h1>
+
+{% if turnos %}
+  <ul>
+    {% for turno in turnos %}
+      <li>
+        <a href="{% url 'reporte_ventas_por_turno' %}?turno_id={{ turno.id }}">
+          Turno en {{ turno.sucursal.nombre }} de {{ turno.usuario.get_full_name }} - {{ turno.inicio_turno|date:"d/m/Y H:i" }}
+          {% if turno.fin_turno %}
+            hasta {{ turno.fin_turno|date:"d/m/Y H:i" }}
+          {% else %}
+            <span class="activo">(Activo)</span>
+          {% endif %}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No se encontraron turnos para los filtros seleccionados.</p>
+{% endif %}
+
+</body>
+</html>

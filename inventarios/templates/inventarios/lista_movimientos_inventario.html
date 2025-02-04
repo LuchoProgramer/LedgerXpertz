@@ -1,0 +1,32 @@
+{% extends 'base_administrador.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Historial de Movimientos de Inventario</h1>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Sucursal</th>
+                    <th>Tipo de Movimiento</th>
+                    <th>Cantidad</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movimiento in movimientos %}
+                <tr>
+                    <td>{{ movimiento.id }}</td>
+                    <td>{{ movimiento.producto.nombre }}</td>
+                    <td>{{ movimiento.sucursal.nombre }}</td>
+                    <td>{{ movimiento.tipo_movimiento }}</td>
+                    <td>{{ movimiento.cantidad }}</td>
+                    <td>{{ movimiento.fecha }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

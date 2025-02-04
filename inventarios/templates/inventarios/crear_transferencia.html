@@ -1,0 +1,59 @@
+{% extends 'base_administrador.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Crear Transferencia de Productos</h1>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <!-- Mostrar el stock disponible antes de transferir -->
+            <p><strong>Stock disponible en origen:</strong> <span id="stockDisponible">-</span></p>
+
+            <button type="submit" class="btn btn-primary">Transferir</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let productoSelect = document.querySelector("#id_producto");
+            let sucursalOrigenSelect = document.querySelector("#id_sucursal_origen");
+            let cantidadInput = document.querySelector("#id_cantidad");
+            let stockDisponibleSpan = document.querySelector("#stockDisponible");
+
+            function actualizarStock() {
+                let productoId = productoSelect.value;
+                let sucursalId = sucursalOrigenSelect.value;
+
+                if (productoId && sucursalId) {
+                    fetch(`/inventarios/api/stock_disponible/${sucursalId}/${productoId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            stockDisponibleSpan.textContent = data.stock;
+                            cantidadInput.max = data.stock; // Limitar la cantidad a la disponible
+                        })
+                        .catch(error => {
+                            console.error("Error obteniendo stock:", error);
+                            stockDisponibleSpan.textContent = "-";
+                        });
+                } else {
+                    stockDisponibleSpan.textContent = "-";
+                }
+            }
+
+            // Validar que la cantidad no supere el stock disponible
+            cantidadInput.addEventListener("input", function () {
+                let stockDisponible = parseInt(stockDisponibleSpan.textContent) || 0;
+                let cantidadIngresada = parseInt(cantidadInput.value) || 0;
+
+                if (cantidadIngresada > stockDisponible) {
+                    cantidadInput.value = stockDisponible; // Forzar el valor al máximo disponible
+                }
+            });
+
+            productoSelect.addEventListener("change", actualizarStock);
+            sucursalOrigenSelect.addEventListener("change", actualizarStock);
+        });
+    </script>
+{% endblock %}

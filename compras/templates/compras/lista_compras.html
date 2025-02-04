@@ -1,0 +1,44 @@
+{% extends 'base_administrador.html' %}
+
+{% block content %}
+    <div class="mt-5">
+        <h1>Lista de Compras</h1>
+
+        <!-- Tabla de compras -->
+        <table class="table table-striped mt-4">
+            <thead class="table-dark">
+                <tr>
+                    <th>Sucursal</th>
+                    <th>Proveedor</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for compra in compras %}
+                <tr>
+                    <td>{{ compra.sucursal.nombre }}</td>
+                    <td>{{ compra.proveedor.nombre }}</td>
+                    <td>{{ compra.fecha_emision }}</td>
+                    <td>{{ compra.total_con_impuestos }}</td>
+                    <td>
+                        <!-- Enlace a los detalles de la compra -->
+                        <a href="{% url 'compras:detalle_compra' compra.id %}" class="btn btn-info btn-sm">Ver Detalles</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No hay compras registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Enlaces de acción -->
+        <div class="mt-4">
+            <a href="{% url 'compras:crear_compra_con_productos' %}" class="btn btn-primary">Nueva Compra</a>
+            <a href="{% url 'compras:procesar_compra_xml' %}" class="btn btn-secondary">Cargar Compra desde XML</a>
+        </div>
+    </div>
+{% endblock %}

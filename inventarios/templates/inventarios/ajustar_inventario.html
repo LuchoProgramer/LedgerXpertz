@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajustar Inventario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Ajustar Inventario para {{ producto.nombre }} en {{ sucursal.nombre }}</h1>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="nueva_cantidad" class="form-label">Nueva Cantidad</label>
+                <input type="number" id="nueva_cantidad" name="nueva_cantidad" class="form-control" value="{{ inventario.cantidad }}" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Lista de Productos</h1>
+
+        <!-- Botón para agregar un producto -->
+        <a href="{% url 'core:agregar_producto' %}" class="btn btn-primary mb-4">Agregar Producto</a>
+
+        <!-- Tabla con los productos -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Presentación y Precio</th>
+                    <th>Sucursal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.nombre }}</td>
+                    <td>{{ producto.descripcion }}</td>
+                    <td>
+                        {% if producto.presentacion_info %}
+                            {{ producto.presentacion_info.nombre_presentacion }} - ${{ producto.presentacion_info.precio }}
+                        {% else %}
+                            Sin presentaciones
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if producto.sucursal %}
+                            {{ producto.sucursal.nombre }}
+                        {% else %}
+                            No asignada
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'core:ver_producto' producto.id %}" class="btn btn-info btn-sm">Ver</a>
+                        <a href="{% url 'core:editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
+                        {% if tiene_permiso %}
+                        <a href="{% url 'core:eliminar_producto' producto.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                        {% endif %}                   
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No hay productos disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

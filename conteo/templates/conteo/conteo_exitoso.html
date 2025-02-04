@@ -1,0 +1,15 @@
+<!-- 
+{% extends 'base.html' %}
+-->
+
+{% block title %}Conteo Exitoso{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="text-center">
+        <h2>¡Conteo realizado con éxito!</h2>
+        <p>El conteo se ha registrado y el informe ha sido enviado por correo electrónico.</p>
+        <a href="{% url 'ventas:inicio_turno' turno_id=turno_activo.id %}" class="btn btn-dark" id="toggle-sidebar" style="background-color: #2C2C2C; border-color: #2C2C2C;">Ir a la Tienda</a>
+    </div>
+</div>
+{% endblock %}

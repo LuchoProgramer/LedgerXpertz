@@ -1,0 +1,61 @@
+/* Variables de colores */
+:root {
+    --hover-bg: #D6D8DA;
+    --hover-text: #2C2C2C;
+    --text-color: black;
+}
+
+/* Estilos para el sidebar */
+#sidebar .nav-link {
+    font-weight: bold;
+    padding: 10px;
+    transition: color 0.3s ease;
+}
+
+#sidebar .dropdown-item:hover {
+    background-color: var(--hover-bg);
+    /* Gris más oscuro al hacer hover */
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#sidebar .nav-link:hover {
+    color: var(--hover-text);
+    /* Gris oscuro para el texto al hacer hover */
+}
+
+#sidebar {
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    /* Sombra para separar el sidebar */
+}
+
+/* Estilos para el offcanvas */
+.offcanvas-body .nav-link {
+    font-weight: bold;
+    padding: 10px;
+}
+
+.offcanvas-body .dropdown-item:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Botón de cierre */
+.btn-close-white {
+    background-color: white;
+    border: none;
+    opacity: 1;
+}
+
+.btn-close-white:hover {
+    background-color: #f8f9fa;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .offcanvas {
+        width: 300px;
+        /* Ajusta el ancho en pantallas pequeñas */
+    }
+}

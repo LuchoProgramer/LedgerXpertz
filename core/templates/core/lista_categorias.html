@@ -1,0 +1,29 @@
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Lista de Categorías</h1>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for categoria in categorias %}
+                <tr>
+                    <td>{{ categoria.id }}</td>
+                    <td>{{ categoria.nombre }}</td>
+                    <td>{{ categoria.descripcion }}</td>
+                    <td>
+                        <a href="{% url 'core:productos_por_categoria' categoria.id %}" class="btn btn-info btn-sm">Ver Productos</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{% url 'core:agregar_categoria' %}" class="btn btn-primary mt-4">Agregar Categoría</a>
+    </div>
+{% endblock %} 

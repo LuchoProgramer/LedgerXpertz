@@ -1,0 +1,46 @@
+
+<h1>Reporte de Ventas Filtrado</h1>
+
+<form method="get">
+    <div class="form-group">
+        {{ form.as_p }}
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+        <button type="submit" name="exportar_excel" value="true" class="btn btn-success">Exportar a Excel</button>
+    </div>
+</form>
+
+<p>Total de ventas: {{ ventas|length }}</p>
+
+{% if ventas %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+            <th>Sucursal</th>
+            <th>Usuario</th>
+            <th>Turno</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for venta in ventas %}
+        <tr>
+            <td>{{ venta.producto.nombre }}</td>
+            <td>{{ venta.cantidad }}</td>
+            <td>{{ venta.total_venta }}</td>
+            <td>{{ venta.sucursal.nombre }}</td>
+            <td>{{ venta.usuario.username }}</td>
+            <td>{{ venta.turno.id }}</td>
+            <td>{{ venta.fecha }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p>No se encontraron ventas para los filtros seleccionados.</p>
+{% endif %}

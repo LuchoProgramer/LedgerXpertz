@@ -1,0 +1,20 @@
+
+
+{% block content %}
+  <h2>Crear Usuario</h2>
+
+  <!-- Mostrar mensajes de éxito o error -->
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Crear Usuario</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LA HUEQUITA QUITEÑA - Listado de Ventas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tfoot td {
+            font-weight: bold;
+            text-align: right;
+            background-color: #f9f9f9;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        /* Agregar un fondo para las celdas de totales */
+        .total-row {
+            background-color: #e6f7ff;
+        }
+
+        .payment-total-row {
+            background-color: #ffebcc;
+        }
+
+        .table-footer {
+            font-weight: bold;
+        }
+
+        /* Formato para valores monetarios */
+        .currency {
+            text-align: right;
+            padding-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>LA HUEQUITA QUITEÑA</h1>
+    <h2>LISTADO DE VENTAS</h2>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha Emisión</th>
+                    <th>Hora</th>
+                    <th>Tipo</th>
+                    <th>Num.Factura</th>
+                    <th>Cliente</th>
+                    <th>Sub Total</th>
+                    <th>Desc.</th>
+                    <th>IVA</th>
+                    <th>Total</th>
+                    <th>Retención</th>
+                    <th>Total Pagar</th>
+                    <th>Forma de Pago</th>
+                    <th>Monto de Pago</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for factura in facturas %}
+                <tr>
+                    <td>{{ factura.fecha_emision|date:"d/m/Y" }}</td>
+                    <td>{{ factura.fecha_emision|time:"H:i:s" }}</td>
+                    <td>Factura</td>
+                    <td>{{ factura.numero_autorizacion }}</td>
+                    <td>{{ factura.cliente }}</td> <!-- Cliente -->
+                    <td class="currency">{{ factura.subtotal|floatformat:2 }}</td> <!-- Subtotal -->
+                    <td class="currency">{{ factura.total_descuentos|floatformat:2 }}</td> <!-- Descuento total -->
+                    <td class="currency">{{ factura.total_iva|floatformat:2 }}</td> <!-- IVA -->
+                    <td class="currency">{{ factura.total_con_impuestos|floatformat:2 }}</td> <!-- Total -->
+                    <td class="currency">0.00</td> <!-- Retención (por defecto 0.00) -->
+                    <td class="currency">{{ factura.total_con_impuestos|floatformat:2 }}</td> <!-- Total a pagar -->
+                    <td>
+                        {% for pago in factura.pagos %}
+                            {{ pago.descripcion }}<br> <!-- Forma de Pago -->
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for pago in factura.pagos %}
+                            {{ pago.total|floatformat:2 }}<br> <!-- Monto de Pago -->
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <!-- Fila de Totales Generales -->
+                <tr class="total-row">
+                    <td colspan="5"></td>
+                    <td class="currency">{{ subtotal_acumulado|floatformat:2 }}</td> <!-- Subtotal acumulado -->
+                    <td class="currency">{{ total_descuentos|floatformat:2 }}</td> <!-- Total descuentos -->
+                    <td class="currency">{{ total_iva|floatformat:2 }}</td> <!-- Total IVA -->
+                    <td class="currency">{{ total_a_pagar|floatformat:2 }}</td> <!-- Total -->
+                    <td class="currency">0.00</td> <!-- Retención total -->
+                    <td class="currency">{{ total_a_pagar|floatformat:2 }}</td> <!-- Total a pagar acumulado -->
+                    <td colspan="2"></td> <!-- Espacio para Formas de Pago -->
+                </tr>
+                <!-- Fila para "TOTALES FORMAS DE PAGO" -->
+                <tr class="payment-total-row">
+                    <td colspan="11"></td> <!-- Abarca todas las celdas hasta "Formas de Pago" -->
+                    <td colspan="2">TOTALES FORMAS DE PAGO</td> <!-- Se coloca en "Formas de Pago" y "Monto de Pago" -->
+                </tr>
+                <!-- Mostrar cada método de pago en una celda separada -->
+                {% for forma_pago, total in total_por_forma_pago.items %}
+                <tr class="payment-total-row">
+                    <td colspan="11"></td> <!-- Abarca todas las celdas hasta "Formas de Pago" -->
+                    <td>{{ forma_pago }}</td> <!-- Nombre del método de pago -->
+                    <td class="currency">{{ total|floatformat:2 }}</td> <!-- Total por forma de pago -->
+                </tr>
+                {% endfor %}
+                <!-- Fila para Total General -->
+                <tr class="table-footer">
+                    <td colspan="11"></td> <!-- Abarca todas las celdas hasta "Formas de Pago" -->
+                    <td>TOTAL:</td>
+                    <td class="currency">{{ total_a_pagar|floatformat:2 }}</td> <!-- Total final -->
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</body>
+</html>

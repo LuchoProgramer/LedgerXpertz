@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nombre de la Empresa{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Select2 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" rel="stylesheet" />
+    
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"/>
+    <!-- Bloque para CSS adicional en plantillas hijas -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Bloque para la barra de navegación -->
+    {% block navbar %}
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #E9ECEF;">
+        <div class="container-fluid">
+            <!-- Logo y nombre de la empresa -->
+            <a class="navbar-brand ms-3 d-flex align-items-center" 
+               href="{% if turno_activo %}{% url 'ventas:inicio_turno' turno_id=turno_activo.id %}{% else %}#{% endif %}">
+                <img src="https://lahuequitaquitena.netlify.app/Imagenes/Logo%20La%20Huequita%20200px.png" 
+                     alt="Logo La Huequita Quiteña" width="50" height="50" class="me-2 rounded-circle">
+                <span style="font-family: 'Cinzel', serif; font-weight: bold; color: #2C2C2C;">
+                    La Huequita Quiteña
+                </span>
+            </a>
+
+            <!-- Botón de colapso para pantallas pequeñas -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+                    data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" 
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Menú de navegación -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'registrar_conteo' %}?sucursal_id={{ turno_activo.sucursal.id }}">
+                            Registrar Conteo Diario
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Menú 2</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Menú 3</a>
+                    </li>
+                    <li class="nav-item">
+                        <form action="{% url 'ventas:cerrar_turno' %}" method="get" class="d-inline">
+                            <button type="submit" class="btn btn-danger nav-link text-white ms-3">
+                                Cerrar Turno
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    <!-- Contenedor principal -->
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- jQuery (necesario para Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+
+    <!-- Inicialización de Select2 -->
+    <script>
+        $(document).ready(function() {
+            // Comprueba si Select2 está disponible antes de inicializar
+            if (typeof $.fn.select2 !== 'undefined') {
+                // Inicializa Select2
+                $('.django-select2').select2({
+                    width: '100%'
+                });
+            } else {
+                // Reintenta la carga si Select2 no está disponible
+                setTimeout(function() {
+                    if ($.fn.select2) {
+                        $('.django-select2').select2({
+                            width: '100%'
+                        });
+                    } else {
+                        console.error('Select2 aún no está disponible.');
+                    }
+                }, 500);  // Reintenta después de 500 ms
+            }
+        });
+    </script>
+
+    <!-- Bloque para JS adicional en plantillas hijas -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

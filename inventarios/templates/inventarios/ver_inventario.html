@@ -1,0 +1,86 @@
+{% extends 'base_administrador.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Inventario de la sucursal: {{ sucursal.nombre }}</h1>
+        
+        <div class="mb-4">
+            <!-- Botón para ver el historial de compras -->
+            <a href="{% url 'compras:lista_compras' %}" class="btn btn-secondary me-2">
+                <i class="bi bi-card-list"></i> Ver Historial de Compras
+            </a>
+            <!-- Botón para agregar inventario manualmente -->
+            <a href="{% url 'inventarios:agregar_inventario_manual' sucursal.id %}" class="btn btn-primary me-2">
+                <i class="bi bi-plus-square"></i> Agregar Inventario Manualmente
+            </a>
+            <!-- Botón para cargar inventario desde Excel -->
+            <a href="{% url 'inventarios:cargar_inventario_excel' sucursal.id %}" class="btn btn-primary">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Cargar Inventario desde Excel
+            </a>
+        </div>
+
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if inventarios %}
+                    {% for inventario in inventarios %}
+                    <tr>
+                        <td>{{ inventario.producto.id }}</td>
+                        <td>{{ inventario.producto.nombre }}</td>
+                        <td>{{ inventario.cantidad }}</td>
+                        <td>
+                            <a href="{% url 'inventarios:ajustar_inventario' inventario.producto.id sucursal.id %}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil-square"></i> Ajustar Inventario
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">No hay productos en el inventario de esta sucursal.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <nav aria-label="Paginación del inventario">
+            <ul class="pagination justify-content-center">
+                {% if inventarios.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; Primera</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ inventarios.previous_page_number }}">Anterior</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">Página {{ inventarios.number }} de {{ inventarios.paginator.num_pages }}</span>
+                </li>
+
+                {% if inventarios.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ inventarios.next_page_number }}">Siguiente</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ inventarios.paginator.num_pages }}">&Uacute;ltima &raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+    </div>
+{% endblock %}
+
+{% block extra_head %}
+    <!-- Cargar íconos de Bootstrap -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.5.0/font/bootstrap-icons.min.css">
+{% endblock %}

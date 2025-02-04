@@ -1,0 +1,29 @@
+{% block content %}
+    <h2>Lista de Impuestos</h2>
+    <a href="{% url 'facturacion:crear_impuesto' %}" class="btn btn-primary mb-4">Crear Impuesto</a>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Codigo</th>
+                <th>Nombre</th>
+                <th>Porcentaje</th>
+                <th>Activo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for impuesto in impuestos %}
+                <tr>
+                    <td>{{ impuesto.codigo_impuesto }}</td>
+                    <td>{{ impuesto.nombre }}</td>
+                    <td>{{ impuesto.porcentaje }}%</td>
+                    <td>{% if impuesto.activo %} Sí {% else %} No {% endif %}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No hay impuestos disponibles para tu empresa.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

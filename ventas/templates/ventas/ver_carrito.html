@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Carrito de Ventas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Carrito de Ventas</h1>
+
+    {% if carrito_items %}
+        <!-- Contenedor para mensajes -->
+        <div id="mensaje" class="mt-2"></div>
+
+        <!-- Tabla para mostrar el carrito -->
+        <div class="table-responsive">
+            <table class="table">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in carrito_items %}
+                        <tr id="item-{{ item.id }}">
+                            <td>{{ item.producto.nombre }}</td>
+                            <td>
+                                <input type="number" class="form-control cantidad-item" data-item-id="{{ item.id }}" value="{{ item.cantidad }}" min="1" style="width: 70px;">
+                            </td>
+                            <td>{{ item.producto.precio }} {{ item.producto.moneda }}</td>
+                            <td id="subtotal-{{ item.id }}">{{ item.subtotal }} {{ item.producto.moneda }}</td>
+                            <td>
+                                <!-- Botón para eliminar el producto -->
+                                <button type="button" class="btn btn-danger btn-sm eliminar-item" data-item-id="{{ item.id }}">
+                                    <i class="fas fa-trash-alt"></i> Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mostrar el total -->
+        <p class="font-weight-bold text-right" style="font-size: 1.5em;">
+            Total: <span id="total">{{ total }} {{ carrito_items.0.producto.moneda }}</span>
+        </p>
+    {% else %}
+        <p>El carrito está vacío. ¡Agrega productos al carrito!</p>
+    {% endif %}
+        
+    <!-- Botón para agregar productos al carrito -->
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'ventas:inicio_turno' turno.id %}" class="btn btn-secondary">
+            <i class="fas fa-plus"></i> Agregar Productos al Carrito
+        </a>
+
+        <!-- Botones de cotización y facturación solo si hay productos en el carrito -->
+        {% if carrito_items %}
+            <div class="btn-group" role="group">
+                {% if cotizacion %}
+                    <a href="{% url 'facturacion:generar_pdf_cotizacion' cotizacion.id %}" class="btn btn-primary">
+                        <i class="fas fa-file-alt"></i> Generar Cotización
+                    </a>
+                {% else %}
+                    <a href="#" class="btn btn-primary disabled">
+                        <i class="fas fa-file-alt"></i> Generar Cotización
+                    </a>
+                {% endif %}
+                <a href="{% url 'facturacion:generar_factura' %}" class="btn btn-success">
+                    <i class="fas fa-file-invoice-dollar"></i> Generar Factura
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+<!-- Scripts -->
+{% block extra_scripts %}
+<script type="text/javascript">
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    var csrftoken = getCookie('csrftoken');
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader('X-CSRFToken', csrftoken);
+            }
+        }
+    });
+
+    $(document).ready(function() {
+        $('.eliminar-item').click(function(e) {
+            e.preventDefault();
+            var button = $(this);
+            var itemId = button.data('item-id');
+            if (confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
+                $.ajax({
+                    url: "{% url 'ventas:eliminar_item_carrito' %}",
+                    type: 'POST',
+                    data: { 'item_id': itemId },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#item-' + itemId).remove();
+                            $('#total').text(response.total + ' {{ carrito_items.0.producto.moneda }}');
+                            $('#mensaje').html('<div class="alert alert-success">Producto eliminado.</div>');
+                        } else {
+                            $('#mensaje').html('<div class="alert alert-danger">Error: ' + response.error + '</div>');
+                        }
+                    },
+                    error: function() {
+                        $('#mensaje').html('<div class="alert alert-danger">Error al eliminar el producto.</div>');
+                    }
+                });
+            }
+        });
+
+        $('.cantidad-item').change(function() {
+            var input = $(this);
+            var itemId = input.data('item-id');
+            var nuevaCantidad = input.val();
+            $.ajax({
+                url: "{% url 'ventas:actualizar_cantidad_carrito' %}",
+                type: 'POST',
+                data: { 'item_id': itemId, 'cantidad': nuevaCantidad },
+                success: function(response) {
+                    if (response.success) {
+                        $('#subtotal-' + itemId).text(response.nuevo_subtotal + ' {{ carrito_items.0.producto.moneda }}');
+                        $('#total').text(response.total + ' {{ carrito_items.0.producto.moneda }}');
+                        $('#mensaje').html('<div class="alert alert-success">Cantidad actualizada.</div>');
+                    } else {
+                        $('#mensaje').html('<div class="alert alert-danger">Error: ' + response.error + '</div>');
+                        input.val(input.data('cantidad-anterior'));
+                    }
+                },
+                error: function() {
+                    $('#mensaje').html('<div class="alert alert-danger">Error al actualizar la cantidad.</div>');
+                    input.val(input.data('cantidad-anterior'));
+                }
+            });
+        });
+
+        $('.cantidad-item').focus(function() {
+            $(this).data('cantidad-anterior', $(this).val());
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+<!-- templates/reportes/buscar_turno.html -->
+<h1>Buscar Ventas por Turno</h1>
+<form method="GET" action="{% url 'buscar_turno_por_id' %}">
+  <div>
+    <label for="turno_id">ID del Turno:</label>
+    <input type="number" name="turno_id" id="turno_id" required placeholder="Ingresa el ID del turno" min="1">
+  </div>
+  <div>
+    <button type="submit">Buscar</button>
+  </div>
+</form>

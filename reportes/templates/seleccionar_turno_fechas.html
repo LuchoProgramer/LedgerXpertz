@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Turno</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 300px;
+            margin: 0 auto;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select, button {
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Seleccionar Turno</h1>
+
+<form method="GET" action="{% url 'seleccionar_turno_por_fechas' %}">
+  <label for="fecha_inicio">Fecha de Inicio:</label>
+  <input type="date" name="fecha_inicio" required aria-label="Fecha de inicio del turno">
+  
+  <label for="fecha_fin">Fecha de Fin:</label>
+  <input type="date" name="fecha_fin" required aria-label="Fecha de fin del turno">
+  
+  <label for="user_id">Usuario:</label>
+  <select name="user_id" aria-label="Seleccione el usuario para el turno">
+    <option value="" disabled selected>Seleccione un usuario</option>
+    {% for user in users %}
+      <option value="{{ user.id }}">{{ user.get_full_name }}</option>
+    {% endfor %}
+  </select>
+  
+  <button type="submit">Buscar Turnos</button>
+</form>
+
+</body>
+</html>

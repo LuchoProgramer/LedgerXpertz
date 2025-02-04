@@ -1,0 +1,15 @@
+<!-- core/templates/core/home.html -->
+
+{% block content %}
+    <div class="jumbotron">
+        <h1 class="display-4">¡Bienvenido a la Aplicación!</h1>
+        <p class="lead">Este es el punto de inicio de la aplicación. Aquí podrás ver el resumen de lo que puedes hacer y acceder a las distintas funcionalidades.</p>
+        <hr class="my-4">
+        <p>Para comenzar, navega por el menú superior o selecciona una de las siguientes opciones:</p>
+        <ul>
+            <li><a href="{% url 'core:lista_productos' %}">Ver productos</a></li>
+            <li><a href="{% url 'facturacion:lista_impuestos' %}">Administrar impuestos</a></li>
+            <li><a href="{% url 'core:lista_sucursales' %}">Ver sucursales</a></li>
+        </ul>
+    </div>
+{% endblock %}

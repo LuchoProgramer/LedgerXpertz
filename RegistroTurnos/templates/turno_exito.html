@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turno Asignado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 1.8em;
+            color: #28a745;
+            text-align: center;
+        }
+        p {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            text-align: center;
+            background-color: #007bff;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Turno Asignado Correctamente</h1>
+        <p><strong>Usuario:</strong> {{ turno.usuario.username }}</p>
+        <p><strong>Sucursal:</strong> {{ turno.sucursal.nombre }}</p>
+        <p><strong>Inicio del Turno:</strong> {{ turno.inicio_turno|date:"d M Y, H:i" }}</p>
+        <a href="{% url 'dashboard' %}" class="btn">Volver al Dashboard</a>
+    </div>
+</body>
+</html>

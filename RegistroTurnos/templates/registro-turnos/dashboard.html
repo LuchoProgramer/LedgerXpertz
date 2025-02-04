@@ -1,0 +1,99 @@
+{% extends 'base_administrador.html' %}
+{% load static %}
+
+{% block content %}
+
+    <!-- Contenedor principal -->
+    <div class="container-fluid">
+        <div class="row">          
+
+            <!-- Contenido Principal -->
+            <div id="content" class="col">
+                <div class="container mt-5">
+                    <h1 class="mb-4">Bienvenido al Dashboard</h1>
+                    <p><strong>Usuario:</strong> {{ request.user.username }}</p>
+                    {% if sucursal_activa %}
+                        <p><strong>Sucursal Activa:</strong> {{ sucursal_activa.nombre }}</p>
+                    {% else %}
+                        <p class="text-warning">No tienes una sucursal activa. Por favor, inicia un turno.</p>
+                    {% endif %}
+            
+                    <!-- Sección de Tarjetas -->
+                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                        <!-- Tarjeta 1: Inicio de Turno -->
+                        <div class="col">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body d-flex flex-column justify-content-between">
+                                    <h5 class="card-title">Iniciar Turno</h5>
+                                    <p class="card-text">Selecciona tu sucursal para iniciar el turno y empezar a trabajar.</p>
+                                    <form id="form-inicio-turno" method="POST" action="{% url 'dashboard' %}">
+                                        {% csrf_token %}
+                                        <label for="sucursal_id" class="form-label">Seleccionar Sucursal:</label>
+                                        {% if form.sucursal %}
+                                            {{ form.sucursal }}
+                                            <button type="submit" class="btn btn-dark btn-lg w-100 mt-3 rounded-pill">
+                                                Iniciar Turno
+                                            </button>
+                                        {% else %}
+                                            <p class="text-danger">No tienes sucursales asignadas. Contacta al administrador.</p>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+            
+                        <!-- Tarjeta 2: Placeholder -->
+                        <div class="col">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body d-flex flex-column justify-content-between">
+                                    <h5 class="card-title">Tarjeta 2</h5>
+                                    <p class="card-text">Contenido para la segunda tarjeta (puedes definir más adelante).</p>
+                                </div>
+                            </div>
+                        </div>
+            
+                        <!-- Tarjeta 3: Placeholder -->
+                        <div class="col">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body d-flex flex-column justify-content-between">
+                                    <h5 class="card-title">Tarjeta 3</h5>
+                                    <p class="card-text">Contenido para la tercera tarjeta (puedes definir más adelante).</p>
+                                </div>
+                            </div>
+                        </div>
+            
+                        <!-- Tarjeta 4: Placeholder -->
+                        <div class="col">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body d-flex flex-column justify-content-between">
+                                    <h5 class="card-title">Tarjeta 4</h5>
+                                    <p class="card-text">Contenido para la cuarta tarjeta (puedes definir más adelante).</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Formulario de Logout -->
+                    <div class="mt-5 d-flex justify-content-end">
+                        <form id="logout-form" action="{% url 'logout' %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
+            
+                    <!-- Mensajes de Éxito o Error -->
+                    {% if messages %}
+                    <ul class="list-group mt-4">
+                        {% for message in messages %}
+                        <li class="list-group-item {{ message.tags }}">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>            
+        </div>
+    </div>
+
+{% endblock %}

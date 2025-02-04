@@ -1,0 +1,9 @@
+<h1>Subir archivo XML para Compra</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Procesar Compra</button>
+</form>
+
+<a href="{% url 'compras:lista_compras' %}">Volver a la lista de compras</a>

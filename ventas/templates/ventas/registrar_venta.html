@@ -1,0 +1,15 @@
+<!-- templates/ventas/registrar_venta.html -->
+
+<h1>Registrar Venta</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <label for="metodo_pago">Método de Pago:</label>
+    <select name="metodo_pago" id="metodo_pago">
+        <!-- Usa los códigos correctos del SRI en el value de las opciones -->
+        <option value="01">Efectivo</option>
+        <option value="19">Tarjeta de Crédito</option>
+        <option value="20">Transferencia</option>
+    </select>
+    <button type="submit">Registrar Venta</button>
+</form>

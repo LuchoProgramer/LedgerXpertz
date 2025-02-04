@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Producto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Agregar Producto</h1>
+
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre del Producto</label>
+                {{ form.nombre }}
+            </div>
+
+            <div class="mb-3">
+                <label for="descripcion" class="form-label">Descripción</label>
+                {{ form.descripcion }}
+            </div>
+
+            <div class="mb-3">
+                <label for="unidad_medida" class="form-label">Unidad de Medida</label>
+                {{ form.unidad_medida }}
+            </div>
+
+            <div class="mb-3">
+                <label for="categoria" class="form-label">Categoría</label>
+                {{ form.categoria }}
+                <!-- Botón para abrir el modal de nueva categoría -->
+                <button type="button" class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#categoriaModal">
+                    Agregar Nueva Categoría
+                </button>
+            </div>
+
+            <div class="mb-3">
+                <label for="sucursales" class="form-label">Sucursales (Opcional)</label>
+                {{ form.sucursales }}
+                <small class="text-muted">Puedes seleccionar una o más sucursales, o dejarlo en blanco.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="codigo_producto" class="form-label">Código de Producto</label>
+                {{ form.codigo_producto }}
+            </div>
+
+            <div class="mb-3">
+                <label for="impuesto" class="form-label">Impuesto</label>
+                {{ form.impuesto }}
+            </div>
+
+            <div class="mb-3">
+                <label for="image" class="form-label">Imagen del Producto</label>
+                {{ form.image }}
+            </div>
+
+            <input type="hidden" name="tenant" value="{{ tenant.pk }}"> {# Usar tenant.pk para el ID #}
+            <button type="submit" class="btn btn-primary">Guardar Producto</button>
+        </form>
+
+        {% if producto and producto.pk %}
+            <a href="{% url 'core:agregar_presentaciones' producto.pk %}" class="btn btn-info mt-4">Agregar Presentaciones</a>
+        {% endif %}
+
+        {% if tenant %}
+            <p>Estás agregando un producto para la empresa: {{ tenant.nombre_comercial }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Modal para agregar nueva categoría -->
+    <div class="modal fade" id="categoriaModal" tabindex="-1" aria-labelledby="categoriaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoriaModalLabel">Agregar Nueva Categoría</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="nuevaCategoriaForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre de la Categoría</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <input type="text" class="form-control" id="descripcion" name="descripcion" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Categoría</button>
+                    </form>
+                    <div id="categoriaMensaje" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#nuevaCategoriaForm').on('submit', function (event) {
+                event.preventDefault();
+                
+                let formData = new FormData(this);
+        
+                $.ajax({
+                    url: "{% url 'core:agregar_categoria' %}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',  // Asegura que la respuesta se trate como JSON
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            let categoriaSelect = $('select[name="categoria"]');
+        
+                            // Agregar la nueva categoría al select
+                            let nuevaOpcion = new Option(response.nombre, response.categoria_id, true, true);
+                            categoriaSelect.append(nuevaOpcion).trigger('change'); // Actualizar select
+                            
+                            // Cerrar el modal
+                            $('#categoriaModal').modal('hide');
+                            
+                            // Mostrar mensaje de éxito
+                            $('#categoriaMensaje').html('<div class="alert alert-success">Categoría agregada con éxito.</div>');
+                            
+                            // Limpiar el formulario del modal
+                            $('#nuevaCategoriaForm')[0].reset();
+                        } else {
+                            let errorMsg = '<div class="alert alert-danger"><ul>';
+                            for (let field in response.errors) {
+                                response.errors[field].forEach(function (error) {
+                                    errorMsg += `<li><strong>${field}:</strong> ${error}</li>`;
+                                });
+                            }
+                            errorMsg += '</ul></div>';
+                            $('#categoriaMensaje').html(errorMsg);
+                        }
+                    },
+                    error: function () {
+                        $('#categoriaMensaje').html('<div class="alert alert-danger">Error en la conexión.</div>');
+                    }
+                });
+            });
+        });                   
+    </script>
+</body>
+</html>

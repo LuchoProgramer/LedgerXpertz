@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos Disponibles{% endblock %}
+
+{% block extra_css %}
+<!-- Select2 CSS con la versión correcta -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+<!-- Toastify CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+
+<style>
+    .product-card img {
+        height: 200px;
+        object-fit: cover;
+        width: 100%;
+    }
+
+    .btn-carrito-flotante {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 15px 20px;
+        border-radius: 50px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+    .producto-item {
+    border: 1px solid red;
+}
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center">Turno Iniciado en {{ turno.sucursal.nombre }}</h1>
+
+    <div class="row align-items-center mt-3">
+        <div class="col-md-6">
+            <input type="text" name="q" id="buscar-productos" class="form-control" 
+                   placeholder="Buscar productos..." value="{{ request.GET.q }}">
+        </div>
+        <div class="col-md-6">
+            <select name="categoria" class="form-select select2-categoria" multiple>
+                {% for categoria in categorias %}
+                    <option value="{{ categoria.id }}">
+                        {{ categoria.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div id="productos-container" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4 mt-3">
+        {% for inventario in inventarios %}
+        <div class="col d-flex align-items-stretch producto-item"
+             data-nombre="{{ inventario.producto.nombre|lower }}"
+             data-categoria="{{ inventario.producto.categoria.id }}">
+            <div class="card product-card w-100">
+                {% load static %}
+                <img 
+                    src="{% if inventario.producto.image %}{{ inventario.producto.image.url }}{% else %}{% static 'images/default_image.jpg' %}{% endif %}" 
+                    class="card-img-top" 
+                    alt="{{ inventario.producto.nombre }}">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <h5 class="card-title">{{ inventario.producto.nombre }}</h5>
+                    <p class="card-text">Stock: {{ inventario.cantidad }} unidades</p>
+        
+                    <form method="POST" action="{% url 'ventas:agregar_al_carrito' inventario.producto.id %}" 
+                          class="agregar-carrito-form">
+                        {% csrf_token %}
+                        <select name="presentacion" class="form-select" required>
+                            {% for presentacion in inventario.presentaciones %}
+                                <option value="{{ presentacion.id }}">{{ presentacion.nombre_presentacion }} - ${{ presentacion.precio }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="number" name="cantidad" min="1" max="{{ inventario.cantidad }}" value="1" 
+                               class="form-control mt-2" required>
+                        <button type="submit" class="btn btn-primary mt-2 agregar-carrito-btn">Agregar al Carrito</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No hay productos disponibles en inventario para esta sucursal.</p>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'ventas:ver_carrito' %}" class="btn btn-primary btn-carrito-flotante">
+        <i class="fas fa-shopping-cart"></i> Carrito (<span id="cart-count">{{ total_items_in_cart }}</span>)
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Incluimos Select2 JS con la versión correcta -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<!-- Incluimos Toastify JS -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+    $(document).ready(function() {
+        
+        // Obtener referencias a los elementos
+        const selectCategorias = $('.select2-categoria');
+
+        // Inicializar Select2
+        selectCategorias.select2({
+            placeholder: 'Selecciona categorías',
+            allowClear: true
+        });
+
+        // Obtener referencias a los elementos
+        const inputBuscar = $('#buscar-productos');
+        const productosItems = $('.producto-item');
+
+        // Función para filtrar los productos
+        function filtrarProductos() {
+            console.log('filtrarProductos llamado');
+
+            const query = inputBuscar.val() ? inputBuscar.val().toLowerCase() : '';
+            console.log('Término de búsqueda:', query);
+
+            const categoriasSeleccionadas = selectCategorias.val() || []; // Obtener categorías seleccionadas como array
+            console.log('Categorías seleccionadas:', categoriasSeleccionadas);
+
+
+            productosItems.each(function() {
+                const item = $(this);
+                const nombreProducto = item.attr('data-nombre') ? item.attr('data-nombre').toLowerCase() : '';
+                const categoriaProducto = item.attr('data-categoria') ? item.attr('data-categoria').toString() : '';
+
+                // Verificar si el producto coincide con el término de búsqueda
+                const coincideBusqueda = nombreProducto.includes(query);
+
+                // Verificar si el producto pertenece a alguna de las categorías seleccionadas
+                let coincideCategoria = true; // Por defecto, mostrar si no hay categorías seleccionadas
+                if (categoriasSeleccionadas && categoriasSeleccionadas.length > 0) {
+                    coincideCategoria = categoriasSeleccionadas.includes(categoriaProducto);
+                }
+
+                console.log(`Producto: ${nombreProducto}, Categoría: ${categoriaProducto}, Coincide búsqueda: ${coincideBusqueda}, Coincide categoría: ${coincideCategoria}`);
+
+                // Mostrar u ocultar el producto según las condiciones
+                if (coincideBusqueda && coincideCategoria) {
+                    item.removeClass('d-none').addClass('d-flex');
+                } else {
+                    item.addClass('d-none').removeClass('d-flex');
+                }
+            });
+        }
+
+        // Eventos para filtrar en tiempo real
+        inputBuscar.on('input', filtrarProductos);
+        selectCategorias.on('change', filtrarProductos);
+
+        // Agregar al carrito con notificación Toastify
+        function asignarEventosAgregarCarrito() {
+            document.querySelectorAll('.agregar-carrito-form').forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const submitButton = form.querySelector('.agregar-carrito-btn');
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Agregando...';
+
+                    const formData = new FormData(form);
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                    })
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        console.log('Response URL:', response.url);
+                        if (!response.ok) {
+                            throw new Error('Error en la solicitud');
+                        }
+                        return response.json().catch(error => {
+                            console.error('Error al parsear JSON:', error);
+                            throw new Error('Respuesta no es JSON');
+                        });
+                    })
+                    .then(data => {
+                        console.log('Datos de respuesta:', data);
+                        Toastify({
+                            text: data.message || "Producto agregado al carrito",
+                            duration: 3000,
+                            gravity: "bottom",
+                            position: "right",
+                            backgroundColor: "#28a745"
+                        }).showToast();
+
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Agregar al Carrito';
+
+                        const cartCount = document.getElementById('cart-count');
+                        if (cartCount) {
+    cartCount.textContent = data.total_items;
+} else {
+    console.error('No se encontró el elemento con id="cart-count"');
+}
+                    })
+                    .catch(error => {
+                        console.error('Error durante fetch:', error);
+                        alert('Hubo un error al agregar el producto.');
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Agregar al Carrito';
+                    });
+                });
+            });
+        }
+
+        // Inicializar eventos al cargar la página
+        asignarEventosAgregarCarrito();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% block content %}
+  <h2>
+    {% if sucursal %}
+      Editar Sucursal para {{ sucursal.empresa.nombre_comercial }}
+    {% else %}
+      Crear Sucursal para {{ empresa.nombre_comercial }}
+    {% endif %}
+  </h2>
+
+    {% if sucursal %}
+        <div class="form-group">
+            <label for="razon_social">Razón Social</label>
+            <input type="text" id="razon_social" class="form-control" value="{{ sucursal.empresa.razon_social }}" readonly>
+        </div>
+    {% else %}
+        <div class="form-group">
+            <label for="razon_social">Razón Social</label>
+            <input type="text" id="razon_social" class="form-control" value="{{ empresa.razon_social }}" readonly>
+        </div>
+    {% endif %}
+
+
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      <ul>
+        {% for field, errors in form.errors.items %}
+          <li>{{ field }}: {{ errors|striptags|join:", " }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+
+    {% for field in form %}
+      <div class="form-group">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.errors %}
+          <div class="alert alert-danger">{{ field.errors|striptags }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">
+      {% if sucursal %}Actualizar{% else %}Crear{% endif %}
+    </button>
+  </form>
+
+  <a href="{% url 'core:lista_sucursales' %}" class="btn btn-secondary">Volver a la lista</a>
+{% endblock %}

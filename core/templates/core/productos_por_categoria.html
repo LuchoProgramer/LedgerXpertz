@@ -1,0 +1,47 @@
+
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Productos en la categoría: {{ categoria.nombre }}</h1>
+
+        <!-- Tabla de productos -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Presentación y Precio</th>
+                    <th>Sucursal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.nombre }}</td>
+                    <td>{{ producto.descripcion }}</td>
+                    <td>
+                        {% if producto.presentacion_info %}
+                            {{ producto.presentacion_info.nombre_presentacion }} - ${{ producto.presentacion_info.precio }}
+                        {% else %}
+                            Sin presentaciones
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if producto.sucursal and producto.sucursal.empresa == tenant %}
+                            {{ producto.sucursal.nombre }}
+                        {% else %}
+                            No asignada
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No hay productos disponibles en esta categoría.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

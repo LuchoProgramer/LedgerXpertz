@@ -1,0 +1,6 @@
+<h2>Agregar Inventario Manualmente</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Agregar Inventario</button>
+</form>

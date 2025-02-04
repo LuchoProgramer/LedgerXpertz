@@ -1,0 +1,36 @@
+{% extends 'base_administrador.html' %}
+
+{% block content %}
+    <div class="mt-5">
+        <h1>Detalles de la Compra</h1>
+
+        <p><strong>Sucursal:</strong> {{ compra.sucursal.nombre }}</p>
+        <p><strong>Proveedor:</strong> {{ compra.proveedor.nombre }}</p>
+        <p><strong>Fecha de Emisión:</strong> {{ compra.fecha_emision }}</p>
+        <p><strong>Total con Impuestos:</strong> {{ compra.total_con_impuestos }}</p>
+
+        <h2>Productos</h2>
+        <table class="table table-striped mt-4">
+            <thead class="table-dark">
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.producto.nombre }}</td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>{{ detalle.precio_unitario }}</td>
+                    <td>{{ detalle.total_por_producto }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{% url 'compras:lista_compras' %}" class="btn btn-link mt-4">Volver a la lista de compras</a>
+    </div>
+{% endblock %}
