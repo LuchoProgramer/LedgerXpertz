@@ -290,12 +290,16 @@ def cargar_inventario_excel(request, sucursal_id):
 
 
 
+
 def obtener_stock_disponible(request, sucursal_id, producto_id):
-    """API para obtener el stock disponible en una sucursal"""
+    """API para obtener el stock disponible en una sucursal sin DRF"""
     tenant = request.tenant  # Obtener el tenant actual
 
     with tenant_context(tenant):
-        inventario = Inventario.objects.filter(sucursal_id=sucursal_id, producto_id=producto_id).first()
+        sucursal = get_object_or_404(Sucursal, id=sucursal_id, empresa=tenant)
+        producto = get_object_or_404(Producto, id=producto_id, empresa=tenant)
+
+        inventario = Inventario.objects.filter(sucursal=sucursal, producto=producto).first()
         stock = inventario.cantidad if inventario else 0  # Si no hay inventario, devolver 0
 
-    return JsonResponse({'stock': stock})
+    return JsonResponse({'success': True, 'stock': stock, 'producto': producto.nombre, 'sucursal': sucursal.nombre})

@@ -221,148 +221,161 @@ def agregar_al_carrito(request, producto_id):
 
 
 
+
+
+@login_required
 def ver_carrito(request):
-    # Obtener el turno activo del usuario con la sucursal ya cargada si se usa en la vista
+    """
+    Muestra el carrito de compras del usuario actual dentro de su turno activo.
+    """
+    print(f"👤 Usuario autenticado: {request.user.username}")  # Depuración
+
+    # Obtener el turno activo del usuario
     turno = RegistroTurno.objects.filter(usuario=request.user, fin_turno__isnull=True).select_related('sucursal').first()
-    print(f"Turno activo encontrado: {turno.id} en la sucursal {turno.sucursal.nombre}" if turno else "No hay turno activo.")
 
-    # Verificar si el usuario ha hecho clic en el botón "Eliminar"
-    if request.method == 'POST':
-        item_id = request.POST.get('item_id')  # Obtener el ID del producto del formulario
-        carrito_item = get_object_or_404(Carrito, id=item_id)
-
-        print(f"Eliminando el producto del carrito: {carrito_item.producto.nombre} con presentación {carrito_item.presentacion.nombre_presentacion}")
-        
-        # Asegurarse de que la eliminación de items se haga dentro del contexto del tenant correcto
-        with tenant_context(turno.sucursal.empresa):
-            # Eliminar el producto del carrito en la base de datos
-            carrito_item.delete()
-            
-            # Actualizar la sesión para reflejar la eliminación
-            cart = request.session.get('cart', {})
-            key = f"{carrito_item.producto.id}_{carrito_item.presentacion.id}"
-            if key in cart:
-                del cart[key]
-                request.session['cart'] = cart
-                request.session.modified = True
-                print("Carrito actualizado en la sesión después de la eliminación:", cart)
-
-        return redirect('ventas:ver_carrito')  # Redirigir al carrito actualizado
-
-    if turno:
-        # Asegurarse de que la consulta de los items del carrito se haga en el contexto adecuado
-        with tenant_context(turno.sucursal.empresa):
-            # Obtener los items del carrito con el producto y presentación precargados
-            carrito_items = Carrito.objects.filter(turno=turno).select_related('producto', 'presentacion')
-            print(f"Carrito contiene {carrito_items.count()} items.")
-
-            # Actualizar la sesión con los ítems actuales del carrito para mantener sincronización
-            cart = {}
-            for item in carrito_items:
-                key = f"{item.producto.id}_{item.presentacion.id}"
-                cart[key] = {
-                    'producto_id': item.producto.id,
-                    'presentacion_id': item.presentacion.id,
-                    'quantity': item.cantidad
-                }
-            request.session['cart'] = cart
-            request.session.modified = True
-            print("Carrito sincronizado con la sesión:", cart)
-
-            # Calcular el total utilizando los datos ya cargados
-            total = sum(item.subtotal() for item in carrito_items)
-            print(f"Total calculado del carrito: {total}")
-
-        return render(request, 'ventas/ver_carrito.html', {
-            'carrito_items': carrito_items,
-            'total': total,
-            'turno': turno
-        })
-    else:
-        print("No hay turno activo.")
+    if not turno:
+        print("❌ Error: No hay un turno activo para este usuario.")
         return render(request, 'ventas/error.html', {'mensaje': 'No tienes un turno activo.'})
-    
 
+    print(f"✅ Turno activo encontrado: {turno.id} en la sucursal {turno.sucursal.nombre}")
+
+    # Obtener los productos en el carrito dentro del contexto del tenant
+    with tenant_context(turno.sucursal.empresa):
+        carrito_items = Carrito.objects.filter(turno=turno).select_related('producto', 'presentacion')
+        total = sum(item.subtotal() for item in carrito_items)
+
+    print(f"🛒 Carrito contiene {carrito_items.count()} items. Total: {total}")
+
+    return render(request, 'ventas/ver_carrito.html', {
+        'carrito_items': carrito_items,
+        'total': total,
+        'turno': turno
+    })
+
+
+
+
+@login_required
 @require_POST
 def eliminar_item_carrito(request):
-    # Obtener el ID del item a eliminar
+    """
+    Elimina un producto del carrito del usuario actual en su turno activo.
+    """
     item_id = request.POST.get('item_id')
-    
-    if item_id:
+
+    # Validar que el item_id sea un número válido
+    if not item_id or not item_id.isdigit():
+        print("❌ No se proporcionó un ID de item válido.")
+        return JsonResponse({'success': False, 'error': 'No se proporcionó un ID de item válido.'})
+
+    item_id = int(item_id)  # Convertir a entero después de validar
+
+    # Obtener el turno activo del usuario
+    turno = RegistroTurno.objects.filter(usuario=request.user, fin_turno__isnull=True).first()
+
+    if not turno:
+        print("❌ No hay turno activo para este usuario.")
+        return JsonResponse({'success': False, 'error': 'No tienes un turno activo.'})
+
+    # Verificar que el esquema del tenant sea válido antes de usar tenant_context
+    if not hasattr(turno.sucursal, "empresa"):
+        print("❌ Error: No se encontró una empresa asociada a la sucursal.")
+        return JsonResponse({'success': False, 'error': 'No se encontró una empresa válida.'})
+
+    with tenant_context(turno.sucursal.empresa):
         try:
-            # Obtener el turno activo del usuario
-            turno = RegistroTurno.objects.filter(usuario=request.user, fin_turno__isnull=True).first()
+            # Obtener el item del carrito dentro del esquema correcto
+            carrito_item = get_object_or_404(Carrito, id=item_id, turno=turno)
+            print(f"🗑 Eliminando: {carrito_item.producto.nombre} ({carrito_item.presentacion.nombre_presentacion})")
 
-            if turno:
-                # Usar tenant_context para asegurar que la operación se haga en el contexto correcto
-                with tenant_context(turno.sucursal.empresa):
-                    # Verificar que el item pertenece al turno activo del usuario
-                    carrito_item = get_object_or_404(Carrito, id=item_id, turno=turno)
-                    print(f"Eliminando el producto del carrito: {carrito_item.producto.nombre} con presentación {carrito_item.presentacion.nombre_presentacion}")
+            carrito_item.delete()
 
-                    # Eliminar el producto del carrito
-                    carrito_item.delete()
+            # Calcular el nuevo total después de eliminar el producto
+            carrito_items = Carrito.objects.filter(turno=turno)
+            total = sum(item.subtotal() for item in carrito_items)
+            print(f"✅ Nuevo total después de eliminación: {total}")
 
-                    # Recalcular el total
-                    carrito_items = Carrito.objects.filter(turno=turno)
-                    total = sum(item.subtotal() for item in carrito_items)
-                    
-                    # Responder con éxito y el total actualizado
-                    return JsonResponse({'success': True, 'total': total})
-
-            else:
-                return JsonResponse({'success': False, 'error': 'No tienes un turno activo.'})
+            return JsonResponse({'success': True, 'total': total})
 
         except Carrito.DoesNotExist:
+            print(f"❌ Error: El item con ID {item_id} no existe en el carrito.")
             return JsonResponse({'success': False, 'error': 'El item no existe o no pertenece al usuario.'})
-    else:
-        return JsonResponse({'success': False, 'error': 'No se proporcionó un ID de item válido.'})
-    
+
+        except Exception as e:
+            print(f"❌ Error inesperado al eliminar item {item_id}: {str(e)}")
+            return JsonResponse({'success': False, 'error': 'Ocurrió un error al intentar eliminar el producto.'})
+
+  
 
 
+
+@login_required
 @require_POST
 def actualizar_cantidad_carrito(request):
+    """
+    Actualiza la cantidad de un producto en el carrito del usuario actual dentro de su turno activo.
+    """
     item_id = request.POST.get('item_id')
     nueva_cantidad = request.POST.get('cantidad')
-    
-    if item_id and nueva_cantidad:
-        try:
-            nueva_cantidad = int(nueva_cantidad)
-            if nueva_cantidad < 1:
-                return JsonResponse({'success': False, 'error': 'La cantidad debe ser al menos 1.'})
-            
-            # Obtener el turno activo del usuario
-            turno = RegistroTurno.objects.filter(usuario=request.user, fin_turno__isnull=True).first()
-            
-            if turno:
-                # Usar tenant_context para asegurar que la operación se haga en el contexto correcto
-                with tenant_context(turno.sucursal.empresa):
-                    # Obtener el item del carrito perteneciente al turno activo
-                    carrito_item = get_object_or_404(Carrito, id=item_id, turno=turno)
-                    carrito_item.cantidad = nueva_cantidad
-                    carrito_item.save()
-                    
-                    # Calcular el nuevo subtotal y el total del carrito
-                    nuevo_subtotal = carrito_item.subtotal()
-                    carrito_items = Carrito.objects.filter(turno=turno)
-                    total = sum(item.subtotal() for item in carrito_items)
-                    
-                    # Responder con éxito y los nuevos valores
-                    return JsonResponse({
-                        'success': True,
-                        'nuevo_subtotal': nuevo_subtotal,
-                        'total': total
-                    })
-            else:
-                return JsonResponse({'success': False, 'error': 'No tienes un turno activo.'})
 
-        except ValueError:
-            return JsonResponse({'success': False, 'error': 'La cantidad debe ser un número entero.'})
+    print(f"📩 Recibido item_id: {item_id}, nueva_cantidad: {nueva_cantidad}")  # Depuración
+
+    # Validar que item_id y nueva_cantidad sean valores numéricos
+    if not item_id or not item_id.isdigit() or not nueva_cantidad or not nueva_cantidad.isdigit():
+        print("❌ Error: Datos inválidos en la solicitud.")
+        return JsonResponse({'success': False, 'error': 'Datos inválidos.'})
+
+    item_id = int(item_id)  # Convertir a entero después de validar
+    nueva_cantidad = int(nueva_cantidad)
+
+    if nueva_cantidad < 1:
+        print("❌ La cantidad debe ser al menos 1.")
+        return JsonResponse({'success': False, 'error': 'La cantidad debe ser al menos 1.'})
+
+    # Obtener el turno activo del usuario
+    turno = RegistroTurno.objects.filter(usuario=request.user, fin_turno__isnull=True).first()
+
+    if not turno:
+        print("❌ No hay turno activo para este usuario.")
+        return JsonResponse({'success': False, 'error': 'No tienes un turno activo.'})
+
+    # Verificar si `turno.sucursal.empresa` existe antes de usar `tenant_context`
+    if not hasattr(turno.sucursal, "empresa"):
+        print("❌ Error: No se encontró una empresa asociada a la sucursal.")
+        return JsonResponse({'success': False, 'error': 'No se encontró una empresa válida.'})
+
+    with tenant_context(turno.sucursal.empresa):
+        try:
+            # Obtener el item del carrito dentro del esquema correcto
+            carrito_item = get_object_or_404(Carrito, id=item_id, turno=turno)
+            print(f"🔄 Actualizando {carrito_item.producto.nombre} a cantidad {nueva_cantidad}")
+
+            carrito_item.cantidad = nueva_cantidad
+            carrito_item.save()
+
+            # Calcular el nuevo subtotal y total del carrito
+            nuevo_subtotal = carrito_item.subtotal()
+            carrito_items = Carrito.objects.filter(turno=turno)
+            total = sum(item.subtotal() for item in carrito_items)
+
+            print(f"✅ Nuevo subtotal: {nuevo_subtotal}, Total: {total}")
+
+            return JsonResponse({
+                'success': True,
+                'nuevo_subtotal': nuevo_subtotal,
+                'total': total
+            })
+
         except Carrito.DoesNotExist:
+            print(f"❌ Error: El item con ID {item_id} no existe en el carrito.")
             return JsonResponse({'success': False, 'error': 'El item no existe o no pertenece al usuario.'})
-    else:
-        return JsonResponse({'success': False, 'error': 'Datos incompletos.'})
-    
+
+        except Exception as e:
+            print(f"❌ Error inesperado al actualizar item {item_id}: {str(e)}")
+            return JsonResponse({'success': False, 'error': 'Ocurrió un error al intentar actualizar la cantidad.'})
+   
+
+
 
 # ventas/views.py
 @login_required
