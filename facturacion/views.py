@@ -261,24 +261,21 @@ def generar_pdf_cotizacion_view(request, cotizacion_id):
 
 @require_POST
 def crear_cliente_ajax(request):
-    """
-    Crea un nuevo cliente en el tenant actual a través de AJAX.
-    """
-    tenant = request.tenant  # Obtener el tenant actual
+    tenant = request.tenant
 
-    with tenant_context(tenant):  # Asegurar que se ejecuta dentro del tenant correcto
-        form = ClienteForm(request.POST)
+    with tenant_context(tenant):
+        data = request.POST
 
+        # Validación antes de intentar crear un cliente
+        if Cliente.objects.filter(identificacion=data.get('identificacion')).exists():
+            return JsonResponse({'success': False, 'errors': {'identificacion': ['Ya existe un cliente con esta identificación.']}}, status=400)
+
+        if Cliente.objects.filter(email=data.get('email')).exists():
+            return JsonResponse({'success': False, 'errors': {'email': ['El correo electrónico ya está en uso.']}}, status=400)
+
+        form = ClienteForm(data)
         if form.is_valid():
             cliente = form.save()
-            response = {
-                'success': True,
-                'cliente_id': cliente.id,
-                'razon_social': cliente.razon_social,
-                'identificacion': cliente.identificacion
-            }
-            return JsonResponse(response)
+            return JsonResponse({'success': True, 'cliente_id': cliente.id, 'razon_social': cliente.razon_social, 'identificacion': cliente.identificacion})
         else:
-            errors = form.errors.get_json_data()
-            formatted_errors = {field: [error['message'] for error in error_list] for field, error_list in errors.items()}
-            return JsonResponse({'success': False, 'errors': formatted_errors}, status=400)
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)

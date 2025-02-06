@@ -31,6 +31,8 @@ $(document).ready(function () {
         event.preventDefault();
         var formData = $(this).serialize();
 
+        console.log("Datos enviados al servidor:", formData);
+
         $.ajax({
             url: crearClienteURL, // Asegúrate de definir esta variable en tu plantilla
             type: 'POST',

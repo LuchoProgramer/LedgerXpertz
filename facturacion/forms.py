@@ -16,17 +16,13 @@ class ClienteForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
         }
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if Cliente.objects.filter(email=email).exists():
-            raise forms.ValidationError("Este correo electrónico ya está registrado.")
-        return email
 
     def clean_identificacion(self):
         identificacion = self.cleaned_data.get('identificacion')
-        if len(identificacion) < 6:  # Ejemplo de validación de longitud
-            raise forms.ValidationError("La identificación debe tener al menos 6 caracteres.")
+        if not (len(identificacion) == 10 or len(identificacion) == 13):
+            raise forms.ValidationError("La identificación debe tener 10 (cédula) o 13 (RUC) caracteres.")
         return identificacion
+
 
 
 

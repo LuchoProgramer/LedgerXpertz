@@ -3,6 +3,10 @@
 {% block title %}Carrito de Ventas{% endblock %}
 
 {% block content %}
+<!-- Meta para incluir el turno_id en el script -->
+<meta name="turno-id" content="{{ turno.id }}">
+<meta name="eliminar-item-url" content="{% url 'ventas:eliminar_item_carrito' %}">
+
 <div class="container mt-4">
     <h1>Carrito de Ventas</h1>
 
@@ -27,13 +31,16 @@
                         <tr id="item-{{ item.id }}">
                             <td>{{ item.producto.nombre }}</td>
                             <td>
-                                <input type="number" class="form-control cantidad-item" data-item-id="{{ item.id }}" value="{{ item.cantidad }}" min="1" style="width: 70px;">
+                                <input type="number" class="form-control cantidad-item"
+                                id="cantidad-{{ item.id }}" name="cantidad_{{ item.id }}"
+                                data-item-id="{{ item.id }}" value="{{ item.cantidad }}" min="1" style="width: 70px;">                         
                             </td>
                             <td>{{ item.producto.precio }} {{ item.producto.moneda }}</td>
                             <td id="subtotal-{{ item.id }}">{{ item.subtotal }} {{ item.producto.moneda }}</td>
                             <td>
                                 <!-- Botón para eliminar el producto -->
-                                <button type="button" class="btn btn-danger btn-sm eliminar-item" data-item-id="{{ item.id }}">
+                                <button type="button" class="btn btn-danger btn-sm eliminar-item"
+                                        data-item-id="{{ item.id }}">
                                     <i class="fas fa-trash-alt"></i> Eliminar
                                 </button>
                             </td>
@@ -80,86 +87,88 @@
 
 <!-- Scripts -->
 {% block extra_scripts %}
-<script type="text/javascript">
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    var csrftoken = getCookie('csrftoken');
-
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type) && !this.crossDomain) {
-                xhr.setRequestHeader('X-CSRFToken', csrftoken);
-            }
-        }
-    });
-
-    $(document).ready(function() {
-        $('.eliminar-item').click(function(e) {
-            e.preventDefault();
-            var button = $(this);
-            var itemId = button.data('item-id');
-            if (confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
-                $.ajax({
-                    url: "{% url 'ventas:eliminar_item_carrito' %}",
-                    type: 'POST',
-                    data: { 'item_id': itemId },
-                    success: function(response) {
-                        if (response.success) {
-                            $('#item-' + itemId).remove();
-                            $('#total').text(response.total + ' {{ carrito_items.0.producto.moneda }}');
-                            $('#mensaje').html('<div class="alert alert-success">Producto eliminado.</div>');
-                        } else {
-                            $('#mensaje').html('<div class="alert alert-danger">Error: ' + response.error + '</div>');
-                        }
-                    },
-                    error: function() {
-                        $('#mensaje').html('<div class="alert alert-danger">Error al eliminar el producto.</div>');
-                    }
-                });
-            }
-        });
-
-        $('.cantidad-item').change(function() {
-            var input = $(this);
-            var itemId = input.data('item-id');
-            var nuevaCantidad = input.val();
-            $.ajax({
-                url: "{% url 'ventas:actualizar_cantidad_carrito' %}",
-                type: 'POST',
-                data: { 'item_id': itemId, 'cantidad': nuevaCantidad },
-                success: function(response) {
-                    if (response.success) {
-                        $('#subtotal-' + itemId).text(response.nuevo_subtotal + ' {{ carrito_items.0.producto.moneda }}');
-                        $('#total').text(response.total + ' {{ carrito_items.0.producto.moneda }}');
-                        $('#mensaje').html('<div class="alert alert-success">Cantidad actualizada.</div>');
-                    } else {
-                        $('#mensaje').html('<div class="alert alert-danger">Error: ' + response.error + '</div>');
-                        input.val(input.data('cantidad-anterior'));
-                    }
-                },
-                error: function() {
-                    $('#mensaje').html('<div class="alert alert-danger">Error al actualizar la cantidad.</div>');
-                    input.val(input.data('cantidad-anterior'));
-                }
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("✅ Script de carrito cargado correctamente.");
+    
+        const eliminarItemUrl = document.querySelector('meta[name="eliminar-item-url"]').content;
+    
+        function agregarEventosEliminar() {
+            const botonesEliminar = document.querySelectorAll(".eliminar-item");
+    
+            console.log(`🔍 Se encontraron ${botonesEliminar.length} botones de eliminar.`);
+    
+            botonesEliminar.forEach(button => {
+                const itemId = button.dataset.itemId;
+                console.log(`🔹 Registrando evento para botón con item-id=${itemId}`);
+    
+                // Eliminar cualquier evento previo para evitar duplicados
+                button.removeEventListener("click", eliminarProducto);
+    
+                // Agregar el evento "click"
+                button.addEventListener("click", eliminarProducto);
             });
+        }
+    
+        function eliminarProducto(event) {
+            event.preventDefault();
+    
+            // Obtener datos del producto
+            const itemId = this.dataset.itemId;
+            const turnoId = document.querySelector('meta[name="turno-id"]').content;
+    
+            console.log(`🛑 Click detectado en el botón. Enviando datos: item_id=${itemId}, turno_id=${turnoId}`);
+    
+            if (!itemId || !turnoId) {
+                console.error("❌ Error: item_id o turno_id son inválidos.");
+                alert("Error: No se pudo obtener la información del producto.");
+                return;
+            }
+    
+            // Enviar la solicitud AJAX
+            console.log(`📡 Enviando solicitud a URL: ${eliminarItemUrl}`);
+            fetch(eliminarItemUrl, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": document.cookie.split("csrftoken=")[1].split(";")[0],
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    "item_id": itemId,
+                    "turno_id": turnoId
+                })
+            })
+            .then(response => {
+                console.log("🔄 Procesando respuesta...");
+                return response.json();
+            })
+            .then(data => {
+                console.log("✅ Respuesta del servidor:", data);
+    
+                if (data.success) {
+                    console.log("✅ Producto eliminado con éxito.");
+                    document.getElementById(`item-${itemId}`).remove();
+                    document.getElementById("total").textContent = data.total + " {{ carrito_items.0.producto.moneda }}";
+                } else {
+                    console.error("❌ Error del servidor al eliminar el producto:", data.error);
+                    alert("Error: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("❌ Error en la petición AJAX:", error);
+                alert("Hubo un error al eliminar el producto.");
+            });
+        }
+    
+        // Llamar a la función para registrar los eventos
+        agregarEventosEliminar();
+    
+        // Verificar dinámicamente si se registraron eventos
+        console.log("🧪 Verificando botones con eventos:");
+        document.querySelectorAll(".eliminar-item").forEach(button => {
+            const hasEvent = button.hasAttribute("data-event-registered");
+            console.log(`🔹 Botón con item-id=${button.dataset.itemId}, Evento registrado: ${hasEvent}`);
         });
-
-        $('.cantidad-item').focus(function() {
-            $(this).data('cantidad-anterior', $(this).val());
-        });
-    });
+    });    
 </script>
 {% endblock %}

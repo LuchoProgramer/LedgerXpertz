@@ -79,10 +79,6 @@ class Cliente(models.Model):
         if self.tipo_identificacion == '07' and self.identificacion != '9999999999':
             raise ValidationError('La identificación para Consumidor Final debe ser "9999999999".')
 
-        # Validar que el email sea único si es proporcionado
-        if self.email and Cliente.objects.filter(email=self.email).exclude(pk=self.pk).exists():
-            raise ValidationError('El correo electrónico ya está en uso por otro cliente.')
-
         super(Cliente, self).clean()
 
     def __str__(self):
